@@ -1,0 +1,190 @@
+import React from 'react';
+import './App.css';
+import ApolloClient from "apollo-boost";
+import { ApolloProvider } from "react-apollo";
+import Divider from '@material-ui/core/Divider';
+import Paper from "@material-ui/core/Paper";
+import InputBase from "@material-ui/core/InputBase";
+import SearchIcon from "@material-ui/icons/Search";
+import { makeStyles } from "@material-ui/core/styles";
+import { gql } from '@apollo/client';
+import { Query } from "react-apollo";
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import Pagination from "@material-ui/lab/Pagination";
+import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
+
+
+const useStyles = makeStyles((theme) => ({
+  heading:{
+    alignItems: "center",
+    fontSize: 33,
+    fontWeight: 300,
+    letterSpacing: "0.0075em",
+    verticalAlign: "middle",
+    alignItems: "center",
+    textAlign: "center",
+    color:'#2196F3'
+  },
+  root: {
+    padding: "2px 4px",
+    display: "flex",
+    alignItems: "center",
+    width: 700,
+    margin: `${theme.spacing()}px auto`
+  },
+  input: {
+    flex: 2,
+    alignItems: "center",
+    paddingLeft: `calc(1em + ${theme.spacing(1)}px)`,
+    borderTopLeftRadius: '4px',
+    borderTopRightRadius: '4px'
+  },
+  iconButton: {
+    //padding: 5,
+    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+    border: 1,
+    
+    boxShadow: '1 3px 5px 2px rgba(255, 105, 135, .3)',
+    color: 'white',
+    height:40,
+    padding: '0px 10px'
+  },
+  divider: {
+    margin: `${theme.spacing()}px auto`
+  },
+  paper: {
+    maxWidth: 700,
+    margin: `${theme.spacing()}px auto`,
+    padding: theme.spacing(2),
+  },
+  pagination: {
+    maxWidth: 700,
+    margin: `${theme.spacing()}px auto`,
+    padding: theme.spacing(2),
+    alignItems: "center",
+    verticalAlign: "middle",
+    alignItems: "center",
+    textAlign: "center"
+  },
+  section1: {
+    margin: theme.spacing(1, 2),
+  },
+  section2: {
+    margin: theme.spacing(2),
+    
+  },
+  section3: {
+    margin: theme.spacing(2),
+    //background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+    border: 1,
+    
+    boxShadow: '1 3px 5px 2px rgba(255, 105, 135, .3)'
+    
+  },
+  buttons: {
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  }
+}));
+
+const client = new ApolloClient({
+  uri: "http://localhost:4000/"
+});
+
+export const getSolrData = gql`
+      query Data($query: String){
+        responseHeader(row: "5", start:"1",query: $query){
+          response{
+            numFound
+            docs{
+              id
+              data
+              resource
+            }
+          }
+        }
+      }
+      `;
+
+export default function App() {
+  const [value, setValue] = React.useState()
+
+
+  const onSubmit =  e => {
+    e.PreventDefault();
+  };
+
+  
+  const classes = useStyles();
+
+  return (
+      
+      <div>
+        <div className={classes.heading}>
+        <Typography variant="h5"><b>KSearchE</b></Typography>
+        </div>
+        <ApolloProvider client={client}>
+        <Paper component="form" className={classes.root}>
+          <InputBase
+            classes={{root:classes.input}}
+            placeholder="Search"
+            inputProps={{ "aria-label": "search google maps" }}
+            onChange={event=>{ //adding the onChange event
+              setValue(event.target.value)
+            }}
+            
+          />
+          <IconButton type="submit"  color="primary" className={classes.iconButton} aria-label="search" onClick= {onSubmit} > 
+            <SearchIcon/>
+          </IconButton>
+      </Paper>
+      <Divider className={classes.section3} />
+      <Query query={getSolrData} variables={{ query: value }}>
+        {({ loading, error, data }) => {
+          if (loading) return <p>Loading...</p>;
+          if (error) return <p>Error :(</p>;
+          return data.responseHeader.response.docs.map(({ id, data, resource }) => (
+            <div key={id}>
+                <Paper className={classes.paper}>
+                <div className={classes.section1}>
+                <Grid container wrap="nowrap" spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography noWrap color="textSecondary" variant="body2"> 
+                    <a href={resource} target="_blank"> <InsertDriveFileIcon /></a>
+                    </Typography>
+                  </Grid>
+                </Grid>
+                </div>
+                <Divider variant="middle" className={classes.Divider} />
+                <div className={classes.section2}>
+                <Grid container wrap="nowrap" spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography noWrap>{data}</Typography>
+                  </Grid>
+                </Grid>
+                </div>
+              </Paper>
+            </div>
+          ));
+        }}
+      </Query>
+      <Pagination
+              className={classes.paper}
+              count={10}
+              page={10}
+              siblingCount={1}
+              boundaryCount={1}
+              variant="outlined"
+              shape="rounded"
+              //onChange={this.handlePageChange}
+            />
+      </ApolloProvider>
+    </div>
+
+    
+  
+  
+)};

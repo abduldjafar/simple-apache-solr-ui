@@ -1,0 +1,36 @@
+
+type ResponseHeader {
+    status: Int
+    QTime: Int
+    params: Param
+    response: Response!
+}
+
+type Param {
+    q:String
+    start:String
+    rows:String    
+}
+
+type Response {
+    numFound: Int
+    start: Int
+    numFoundExact:Boolean
+    docs:[Doc!]
+
+
+}
+type Doc{
+    #title:String
+    #content:[String]
+    #articleid:String
+    #datee:[String]
+
+    id: String
+    resource:[String]
+    data:[String]
+}
+
+type Query {
+    responseHeader(row: String, start: String ,query: String):ResponseHeader
+}
